@@ -9,13 +9,15 @@ import data
 
 class Search(object):
     '''
-    This uses dicts in data.py to search for Premier League Fixtures.
-    league should ALWAYS = epl, until more are added
-    team = 'liverpool' or 'manchestercity', all lower case
-    is results=True will show past games
-    if fixtures=True will show future games
+    This uses dicts in data.py to search for Premier League Fixtures.\n
+    league should ALWAYS = epl, until more are added\n
+    team = 'liverpool' or 'manchestercity', all lower case\n
+    is results=True will show past games.\n
+    if fixtures=True will show future games.\n
+    Do not call aux functions as they will not work on their own.\n 
+    Call the relevant function without aux
     '''
-    def __init__(self, league, team, results, fixture):
+    def __init__(self, league, team, results, fixture, num_results):
         super(Search, self).__init__()
 
         # init the variables supplied
@@ -24,19 +26,7 @@ class Search(object):
         self.results = results
         self.fixture = fixture
         self.data = data.variables
-        
-        # if a team is provided, search for their results
-        if self.team:
-            self.get_team_results_fixture()
-        # if results or fixtures is set, do that
-        else:
-            if self.results or self.fixture:
-                #this func covers both returning results and fixtures
-                self.get_league_results_fixture()
-            
-            else:
-                #currently broken as the table format is different
-                self.get_league_table()
+        self.num_results = num_results
     
     # bc we're going to be doing this A LOT
     def get_html(self, url):
@@ -55,7 +45,7 @@ class Search(object):
     # aux so this doesnt all have to be in one function
     # will return either team results or fixtures based on
     # is_results.
-    def get_team_results_fixture_aux(self, soup, is_results):
+    def get_team_results_fixture_aux(self, soup, is_results, num_results):
 
         if is_results:
             index = 0
@@ -65,13 +55,23 @@ class Search(object):
         results = soup.find_all("div", {'class':'compgrp'})[index]
         # find all games in the result block
         games = results.find_all("table", {'class':'blocks'})
+        # find top scorer block
+        top_scorer_a = soup.find("div", {'class':'topscorerInfo'})
+        top_scorer_name = top_scorer_a.find('div', {'class':'sp-teamtopscorer_name'}).text
+        top_scorer_goals = top_scorer_a.find('div', {'class':'sp-teamtopscorer_totalgoals'}).text   # top goalscorer is found here
+        print('top scorer: ', top_scorer_name, ' - ', top_scorer_goals, 'goals')
+        
 
         # if we want results reverse them so they go from least->most recent
         if is_results:
             games = games[::-1]
         
+        i = 0
         # loop over each game in the results
         for game in games:
+            if i >= num_results:                                        # set a limit to number of results displayed
+                break
+            i += 1
             kick_off = game.find('td', {'class':'kick_t'}).text         # get the kick off time
             home_team = game.find('td', {'class':'home_o'}).text        # get the home team
             away_team = game.find('td', {'class':'away_o'}).text        # get the away team
@@ -98,15 +98,16 @@ class Search(object):
         '''
         team = self.team
         league = self.league
+        num_results = self.num_results
 
         url = self.data[league][team]
         html = self.get_html(url)
         soup = BeautifulSoup(html, 'html.parser')
 
         if self.results:
-            self.get_team_results_fixture_aux(soup, True)
+            self.get_team_results_fixture_aux(soup, True, num_results)
         else:
-            self.get_team_results_fixture_aux(soup, False)
+            self.get_team_results_fixture_aux(soup, False, num_results)
     
     # another helper func for searching for an entire leagues results
     # prints off the previous rounds based on limit
@@ -188,4 +189,6 @@ class Search(object):
         '''
         print('this function is kinda broken atm')
 
-EPL = Search('epl', '', results=False, fixture=True)
+liverpool_search = Search('epl', 'liverpool', results=False, fixture=True, num_results=2)
+
+liverpool_search.get_team_results_fixture()
