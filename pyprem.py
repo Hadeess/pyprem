@@ -168,8 +168,8 @@ class Search(object):
         nh = df.iloc[0]     # select the first row
         df = df.iloc[1:]    # grab the df without the first row
         df.columns = nh     # add the new header
-        
-        return df
+        # return the top rows of the df based on num results
+        return df.iloc[:self.num_results]
 
 liverpool_search = Search('epl', 'liverpool', results=False, fixture=True, num_results=2)
 
