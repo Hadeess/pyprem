@@ -59,19 +59,9 @@ class Search(object):
         # find all games in the result block
         games = results.find_all("table", {'class':'blocks'})
         
-
-        # if we want results reverse them so they go from least->most recent
-        if is_results:
-            games = games[::-1]
-        
-        data = [[]]
-
-        i = 0       # for limiting results
+        info = [[]]
         # loop over each game in the results
         for game in games:
-            if i >= num_results:                                        # set a limit to number of results displayed
-                break
-            i += 1
             kick_off = game.find('td', {'class':'kick_t'}).text         # get the kick off time
             home_team = game.find('td', {'class':'home_o'}).text        # get the home team
             away_team = game.find('td', {'class':'away_o'}).text        # get the away team
@@ -85,15 +75,12 @@ class Search(object):
                     score = '-'
                 else:
                     score = 'CANC'
-            # need to sort out a return value here
-            #if score != 'CANC':
-                #print (kick_off, home_team, score, away_team)
             
-            data.append([kick_off, home_team, score, away_team])   # add data scraped to data to be added to frame
+            info.append([kick_off, home_team, score, away_team])   # add data scraped to data to be added to frame
         
-        df = pd.DataFrame(data, columns = ['KoT', 'Home', 'Score', 'Away'])    # create the df
+        df = pd.DataFrame(info, columns = ['KoT', 'Home', 'Score', 'Away'])    # create the df
         df = df.iloc[1:]                                                                    # dont need the top row
-        return df
+        return df.iloc[:self.num_results]
             
     def get_team_results_fixture(self):
         '''
@@ -130,12 +117,12 @@ class Search(object):
         top_scorer_a = soup.find("div", {'class':'topscorerInfo'})
         top_scorer_name = top_scorer_a.find('div', {'class':'sp-teamtopscorer_name'}).text
         top_scorer_goals = top_scorer_a.find('div', {'class':'sp-teamtopscorer_totalgoals'}).text   # top goalscorer is found here
-        print('top scorer: ', top_scorer_name, ' - ', top_scorer_goals, 'goals')
+        #print('top scorer: ', top_scorer_name, ' - ', top_scorer_goals, 'goals')
 
 
         unbeaten_streak_str = soup.find("div", {'class':'act_comp_unbeat'}).text
         unbeaten_streak_int = re.sub('\D', '', unbeaten_streak_str)
-        print ('unbeaten streak: ', unbeaten_streak_int)
+        #print('unbeaten streak: ', unbeaten_streak_int)
 
         info.append([top_scorer_name, top_scorer_goals, unbeaten_streak_int])
 
@@ -204,8 +191,41 @@ class Search(object):
         df.columns = nh     # add the new header
         # return the top rows of the df based on num results
         return df.iloc[:self.num_results]
+    
+    def get_league_top_scorers(self):
+        league = self.league
+        url = self.data[league]['_l_name_s']
+   
+        
+        html = self.get_html(url)
+        soup = BeautifulSoup(html, 'html.parser')
 
-test_search = Search('epl', 'liverpool', results=True, fixture=False, num_results=3)
+        results = soup.find_all('div', {'class':'tsl_row'})
+        #rows = results.find_all('div', {'class':'tsl_row'})
+
+        info = [[]]
+        rank_ = 0
+        for result in results:
+            rank = result.find('div', {'class':'tsl_rank'}).text
+            if rank == '-':
+                rank = rank_
+            else:
+                rank_ = rank
+            player = result.find('div', {'class':'tsl_player'}).text
+            team = result.find('div', {'class':'tsl_team'}).text
+            goals = result.find('div', {'class':'tsl_goals'}).text
+            pens = result.find('div', {'class':'tsl_pen'}).text
+            assists = result.find('div', {'class':'tsl_assist'}).text
+
+            info.append([rank, player, team, goals, pens, assists])
+        
+        df = pd.DataFrame(info, columns=['Rank', 'Player', 'Team', 'Goals', 'Pens', 'Assists'])
+        df = df.iloc[1:] 
+
+        return df.iloc[:self.num_results]
+        
+
+test_search = Search('epl', 'liverpool', results=True, fixture=False, num_results=10)
 
 
-print(test_search.get_team_detailed_info())
+print(test_search.get_league_top_scorers())

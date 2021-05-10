@@ -1,3 +1,3 @@
 {
-    "python.pythonPath": "pyprem-env\\Scripts\\python.exe"
+    "python.pythonPath": "pyprem-env/bin/python"
 }
