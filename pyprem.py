@@ -121,7 +121,6 @@ class Search(object):
                 num_rounds += 1
                 if num_rounds > limit:
                     break
-                print(round_.text)
             else:
                 game = line.find('tbody')
                 kick_off_date = game.find('span', {'class':'kick_t_dt'}).text
