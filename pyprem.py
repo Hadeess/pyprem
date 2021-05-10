@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import os, json
 import urllib.request
 import data
+import pandas as pd
 
 #
 # Currently only supports premier league games. Other leagues will be added soon
@@ -153,42 +154,25 @@ class Search(object):
     
     def get_league_table(self):
         '''
+        Returns a pandas df of the current premier league table
+        '''
         league = self.league
         url = self.data[league]['_l_name_t']
-        html = self.get_html(url)
-        soup = BeautifulSoup(html, 'html.parser')
+        
+        teams = pd.read_html(url)
 
-        table = soup.find_all(True, {'id':'standings_1a'})
-        print(table)
-        # need to find the right class, its v weird
-        teams = table.find_all('tr', {'class':['livetable__tableRow']})
-        print("_ T P M W D L GF GA F")
-        for team in teams:
-            pos = team.find("td", {'class':'rank'}).text
-            team_ = team.find("td", {'class':'team'}).text
-            point = team.find("td", {'class':'point'}).text
-            mp = team.find("td", {'class':'mp'}).text
-            wins = team.find("td", {'class':'winx'}).text
-            drawn = team.find("td", {'class':'draw'}).text
-            lost = team.find("td", {'class':'lost'}).text
-            goals = team.find("td", {'class':'goalfa'}).text.split(" - ")
-            goals_for = goals[0]
-            goals_against = goals[1]
-            goal_diff = str(int(goals1) - int(goals2))
+        # this removes unneccesary columns 
+        df = teams[0].iloc[:, 1:-1]
 
-            form = team.find("td", {'class':'form'})
-            form_ = form.find_all("span", {'class':'c43px'})
-            form_t = ""
-            for f in form_:
-                form_t += f.text + " "
-            
-            l = [pos, team_, point, mp, wins, drawn, lost, goals_for
-                , goals_against, goals_diff, form_t]
-
-            print(" ".join(l))
-        '''
-        print('this function is kinda broken atm')
+        # convert the first row to the header
+        nh = df.iloc[0]     # select the first row
+        df = df.iloc[1:]    # grab the df without the first row
+        df.columns = nh     # add the new header
+        
+        return df
 
 liverpool_search = Search('epl', 'liverpool', results=False, fixture=True, num_results=2)
 
-liverpool_search.get_team_results_fixture()
+league_table = liverpool_search.get_league_table()
+
+print(league_table)

@@ -127,3 +127,28 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+pyprem-env/Scripts/xlwings64-0.21.4.dll
+pyprem-env/Scripts/xlwings32-0.21.4.dll
+pyprem-env/Scripts/vcruntime140.dll
+pyprem-env/Scripts/tk86t.dll
+pyprem-env/Scripts/tcl86t.dll
+pyprem-env/Scripts/sqlite3.dll
+pyprem-env/Scripts/pythonw.exe
+pyprem-env/Scripts/python37.dll
+pyprem-env/Scripts/python3.dll
+pyprem-env/Scripts/python.exe
+pyprem-env/Scripts/pip3.exe
+pyprem-env/Scripts/pip3.7.exe
+pyprem-env/Scripts/pip.exe
+pyprem-env/Scripts/libssl-1_1-x64.dll
+pyprem-env/Scripts/libcrypto-1_1-x64.dll
+pyprem-env/Scripts/f2py.exe
+pyprem-env/Scripts/easy_install.exe
+pyprem-env/Scripts/easy_install-3.7.exe
+pyprem-env/Scripts/deactivate.bat
+pyprem-env/Scripts/chardetect.exe
+pyprem-env/Scripts/Activate.ps1
+pyprem-env/Scripts/activate.bat
+pyprem-env/Scripts/activate
+pyprem-env/pyvenv.cfg
+pyprem-env/pip-selfcheck.json
