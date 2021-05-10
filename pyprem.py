@@ -3,6 +3,7 @@ import os, json
 import urllib.request
 import data
 import pandas as pd
+import re
 
 #
 # Currently only supports premier league games. Other leagues will be added soon
@@ -13,6 +14,7 @@ class Search(object):
     This uses dicts in data.py to search for Premier League Fixtures.\n
     league should ALWAYS = epl, until more are added\n
     team = 'liverpool' or 'manchestercity', all lower case\n
+    leaving team blank will result in League results\n
     is results=True will show past games.\n
     if fixtures=True will show future games.\n
     Do not call aux functions as they will not work on their own.\n 
@@ -56,18 +58,15 @@ class Search(object):
         results = soup.find_all("div", {'class':'compgrp'})[index]
         # find all games in the result block
         games = results.find_all("table", {'class':'blocks'})
-        # find top scorer block
-        top_scorer_a = soup.find("div", {'class':'topscorerInfo'})
-        top_scorer_name = top_scorer_a.find('div', {'class':'sp-teamtopscorer_name'}).text
-        top_scorer_goals = top_scorer_a.find('div', {'class':'sp-teamtopscorer_totalgoals'}).text   # top goalscorer is found here
-        print('top scorer: ', top_scorer_name, ' - ', top_scorer_goals, 'goals')
         
 
         # if we want results reverse them so they go from least->most recent
         if is_results:
             games = games[::-1]
         
-        i = 0
+        data = [[]]
+
+        i = 0       # for limiting results
         # loop over each game in the results
         for game in games:
             if i >= num_results:                                        # set a limit to number of results displayed
@@ -79,7 +78,6 @@ class Search(object):
 
             if is_results:
                 score = game.find('td', {'class':'score'}).text         # if we want the score get it
-                print(score)
             else:
                 score = game.find('td', {'class': 'score'})             
 
@@ -88,14 +86,21 @@ class Search(object):
                 else:
                     score = 'CANC'
             # need to sort out a return value here
-            if score != 'CANC':
-                print (kick_off, home_team, score, away_team)
+            #if score != 'CANC':
+                #print (kick_off, home_team, score, away_team)
+            
+            data.append([kick_off, home_team, score, away_team])   # add data scraped to data to be added to frame
+        
+        df = pd.DataFrame(data, columns = ['KoT', 'Home', 'Score', 'Away'])    # create the df
+        df = df.iloc[1:]                                                                    # dont need the top row
+        return df
             
     def get_team_results_fixture(self):
         '''
         Get the results and/or fixtures for the given team.
         If we want results, it runs the aux func returning past fixtures
         If not, it gets future fixtures
+        Returns a pandas dataframe
         '''
         team = self.team
         league = self.league
@@ -106,13 +111,42 @@ class Search(object):
         soup = BeautifulSoup(html, 'html.parser')
 
         if self.results:
-            self.get_team_results_fixture_aux(soup, True, num_results)
+            df = self.get_team_results_fixture_aux(soup, True, num_results)
         else:
-            self.get_team_results_fixture_aux(soup, False, num_results)
+            df = self.get_team_results_fixture_aux(soup, False, num_results)
+        
+        return df
     
+    def get_team_detailed_info(self):
+        team = self.team
+        league = self.league
+        info = [[]]
+
+        url = self.data[league][team]
+        html = self.get_html(url)
+        soup = BeautifulSoup(html, 'html.parser')
+
+        # find top scorer block
+        top_scorer_a = soup.find("div", {'class':'topscorerInfo'})
+        top_scorer_name = top_scorer_a.find('div', {'class':'sp-teamtopscorer_name'}).text
+        top_scorer_goals = top_scorer_a.find('div', {'class':'sp-teamtopscorer_totalgoals'}).text   # top goalscorer is found here
+        print('top scorer: ', top_scorer_name, ' - ', top_scorer_goals, 'goals')
+
+
+        unbeaten_streak_str = soup.find("div", {'class':'act_comp_unbeat'}).text
+        unbeaten_streak_int = re.sub('\D', '', unbeaten_streak_str)
+        print ('unbeaten streak: ', unbeaten_streak_int)
+
+        info.append([top_scorer_name, top_scorer_goals, unbeaten_streak_int])
+
+        df = pd.DataFrame(info, columns=['TopScorer', 'GoalsScored', 'WinStreak'])
+        df = df.iloc[1:]
+        return df
+
+
     # another helper func for searching for an entire leagues results
     # prints off the previous rounds based on limit
-    def get_league_results_fixture_aux(self, soup, limit=2):
+    def get_league_results_fixture_aux(self, soup):
         results = soup.find('div', {'id':'national'})
         rounds = results.find_all(True, {'class':['ncet', 'blocks']})
 
@@ -121,7 +155,7 @@ class Search(object):
             round_ = line.find('li', {'class':'ncet_round'})
             if round_:
                 num_rounds += 1
-                if num_rounds > limit:
+                if num_rounds > self.num_results:
                     break
             else:
                 game = line.find('tbody')
@@ -131,7 +165,7 @@ class Search(object):
                 away_team = game.find('td', {'class':'away'}).text
                 score = game.find('td', {'class':'score'}).text
                 
-                print(kick_off_date, kick_off_time, home_team, score, away_team)
+                #print(kick_off_date, kick_off_time, home_team, score, away_team)
     
 
     def get_league_results_fixture(self):
@@ -171,8 +205,7 @@ class Search(object):
         # return the top rows of the df based on num results
         return df.iloc[:self.num_results]
 
-liverpool_search = Search('epl', 'liverpool', results=False, fixture=True, num_results=2)
+test_search = Search('epl', 'liverpool', results=True, fixture=False, num_results=3)
 
-league_table = liverpool_search.get_league_table()
 
-print(league_table)
+print(test_search.get_team_detailed_info())
