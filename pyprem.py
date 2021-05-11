@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import os, json
 import urllib.request
 import data
+import detailed_data
 import pandas as pd
 import re
 
@@ -30,6 +31,7 @@ class Search(object):
         self.fixture = fixture
         self.data = data.variables
         self.num_results = num_results
+        self.detailed_data = detailed_data.links
     
     # bc we're going to be doing this A LOT
     def get_html(self, url):
@@ -117,16 +119,48 @@ class Search(object):
         top_scorer_a = soup.find("div", {'class':'topscorerInfo'})
         top_scorer_name = top_scorer_a.find('div', {'class':'sp-teamtopscorer_name'}).text
         top_scorer_goals = top_scorer_a.find('div', {'class':'sp-teamtopscorer_totalgoals'}).text   # top goalscorer is found here
-        #print('top scorer: ', top_scorer_name, ' - ', top_scorer_goals, 'goals')
 
-
+        # find unbeaten streak
         unbeaten_streak_str = soup.find("div", {'class':'act_comp_unbeat'}).text
         unbeaten_streak_int = re.sub('\D', '', unbeaten_streak_str)
-        #print('unbeaten streak: ', unbeaten_streak_int)
+        #info.append([top_scorer_name, top_scorer_goals, unbeaten_streak_int])
 
-        info.append([top_scorer_name, top_scorer_goals, unbeaten_streak_int])
+        url = self.detailed_data[team]
+        html = self.get_html(url)
+        soup = BeautifulSoup(html, 'html.parser')
 
-        df = pd.DataFrame(info, columns=['TopScorer', 'GoalsScored', 'WinStreak'])
+        stat_block = soup.find('ul', {'class':'normalStatList'})
+        #for stat_block in stat_blocks:
+
+        goals_total = stat_block.find('span', {'class':'statgoals'}).text               # find the goals scored stat
+        goals_total = int(''.join(filter(str.isdigit, goals_total)))                    # isolate only the digits
+        # this could probably be trimmed down a bit
+        goals_per_game = stat_block.find('span', {'class':'statgoals_per_game'}).text
+        goals_per_game = int(''.join(filter(str.isdigit, goals_per_game)))
+        shots_total = stat_block.find('span', {'class':'stattotal_scoring_att'}).text
+        shots_total = int(''.join(filter(str.isdigit, shots_total)))
+        shots_ot_total = stat_block.find('span', {'class':'statontarget_scoring_att'}).text
+        shots_ot_total = int(''.join(filter(str.isdigit, shots_ot_total)))
+        shot_accuracy = stat_block.find('span', {'class':'statshot_accuracy'}).text
+        shot_accuracy = int(''.join(filter(str.isdigit, shot_accuracy)))
+        pen_goals = stat_block.find('span', {'class':'statatt_pen_goal'}).text
+        pen_goals = int(''.join(filter(str.isdigit, pen_goals)))
+        chances_created = stat_block.find('span', {'class':'statbig_chance_created'}).text
+        chances_created = int(''.join(filter(str.isdigit, chances_created)))
+        hit_woodwork = stat_block.find('span', {'class':'stathit_woodwork'}).text  
+        hit_woodwork = int(''.join(filter(str.isdigit, hit_woodwork)))
+        total_passes = stat_block.find('span', {'class':'stattotal_pass'}).text 
+        total_passes = int(''.join(filter(str.isdigit, total_passes)))
+
+        info.append([top_scorer_name, top_scorer_goals, unbeaten_streak_int, goals_total, goals_per_game, 
+                    shots_total, shots_ot_total, shot_accuracy, pen_goals, chances_created, hit_woodwork, 
+                    total_passes])
+            
+
+
+        df = pd.DataFrame(info, columns=['TopScorer', 'GoalsScored', 'WinStreak', 'TotalGoals', 'Goals/Game',
+                                        'TotalShots', 'ShotsOT', 'ShotAcc', 'PenGoals', 'BigChances', 'HitFrame',
+                                        'TotalPasses'])
         df = df.iloc[1:]
         return df
 
@@ -227,5 +261,11 @@ class Search(object):
 
 test_search = Search('epl', 'liverpool', results=True, fixture=False, num_results=10)
 
+detailed = test_search.get_team_detailed_info()
 
-print(test_search.get_league_top_scorers())
+print(detailed)
+
+#top_scorers = test_search.get_league_top_scorers()
+#top_liverpool_scorer = top_scorers.loc[top_scorers['Team']=='Liverpool']
+#print (top_liverpool_scorer['Player'].values)
+#print (top_liverpool_scorer['Goals'].values)
