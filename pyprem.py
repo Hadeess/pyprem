@@ -1,10 +1,8 @@
 from bs4 import BeautifulSoup 
-import os, json
+import json, re
 import urllib.request
 import data
-import detailed_data
 import pandas as pd
-import re
 
 #
 # Currently only supports premier league games. Other leagues will be added soon
@@ -31,7 +29,7 @@ class Search(object):
         self.fixture = fixture
         self.data = data.variables
         self.num_results = num_results
-        self.detailed_data = detailed_data.links
+        self.detailed_data = data.links
     
     # bc we're going to be doing this A LOT
     def get_html(self, url):

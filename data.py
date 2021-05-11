@@ -62,3 +62,7 @@ variables = {
 		"livegame": "https://www.scorespro.com/soccer/china/teams/hebei-zhongji-NDY1ODA=/"
 	}
 }
+
+links = {
+    'liverpool':'https://www.premierleague.com/clubs/10/Liverpool/stats'
+}
