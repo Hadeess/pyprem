@@ -20,16 +20,16 @@ class Search(object):
     Call the relevant function without aux
     '''
     def __init__(self, league, team, results, fixture, num_results):
-        super(Search, self).__init__()
+        super().__init__()
 
         # init the variables supplied
         self.league = league
         self.team = team
         self.results = results
         self.fixture = fixture
-        self.data = data.variables
+        self.data = data.scorespro
         self.num_results = num_results
-        self.detailed_data = data.links
+        self.detailed_data = data.premierleague
     
     # bc we're going to be doing this A LOT
     def get_html(self, url):
@@ -105,6 +105,12 @@ class Search(object):
         return df
     
     def get_team_detailed_info(self):
+        '''
+        Returns a list of:
+        Top Scorer Name, Top Scorer Goals, Team Unbeaten Streak, Team Total Goals, Team Av Goals/Game, 
+        Team Shots Total, Team Shots on Target, Team Shot Accuracy, Penalty Goals, Big Chances Created, Times hit the woodwork, 
+        Team Total Passes
+        '''
         team = self.team
         league = self.league
         info = []
@@ -247,7 +253,7 @@ class Search(object):
         return df.iloc[:self.num_results]
         
 
-test_search = Search('epl', 'liverpool', results=True, fixture=False, num_results=10)
+test_search = Search('epl', 'everton', results=True, fixture=False, num_results=10)
 
 detailed = test_search.get_team_detailed_info()
 

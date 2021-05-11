@@ -1,9 +1,8 @@
 '''
-Keeping in a py file for now bc i might add some functionality
-to dynamically add more urls
+Contains dicts of links for use in prempy
 '''
 
-variables = {
+scorespro = {
 	"epl": {
 		"_l_name":"https://www.scorespro.com/soccer/england/premier-league/",
 		"_l_name_r":"https://www.scorespro.com/soccer/england/premier-league/results/",
@@ -63,6 +62,25 @@ variables = {
 	}
 }
 
-links = {
-    'liverpool':'https://www.premierleague.com/clubs/10/Liverpool/stats'
+premierleague = {
+    'liverpool':'https://www.premierleague.com/clubs/10/Liverpool/stats',
+	"everton":"https://www.premierleague.com/clubs/7/Everton/stats",
+	"astonvilla":"https://www.premierleague.com/clubs/2/Aston-Villa/stats",
+	"leicester":"https://www.premierleague.com/clubs/26/Leicester-City/stats",
+	"arsenal":"https://www.premierleague.com/clubs/1/Arsenal/stats",
+	"tottenham":"https://www.premierleague.com/clubs/21/Tottenham-Hotspur/stats/",
+	"chelsea":"https://www.premierleague.com/clubs/4/Chelsea/stats",
+	"westham":"https://www.premierleague.com/clubs/25/West-Ham-United/stats",
+	"leeds":"https://www.premierleague.com/clubs/9/Leeds-United/stats",
+	"manchestercity":"https://www.premierleague.com/clubs/11/Manchester-City/stats",
+	"southampton":"https://www.premierleague.com/clubs/20/Southampton/stats",
+	"newcastle":"https://www.premierleague.com/clubs/23/Newcastle-United/stats",
+	"crystalpalace":"https://www.premierleague.com/clubs/6/Crystal-Palace/stats",
+	"manchesterunited":"https://www.premierleague.com/clubs/12/Manchester-United/stats",
+	"wolves":"https://www.premierleague.com/clubs/38/Wolverhampton-Wanderers/stats",
+	"brighton":"https://www.premierleague.com/clubs/131/Brighton-and-Hove-Albion/stats",
+	"sheffield":"https://www.premierleague.com/clubs/18/Sheffield-United/stats",
+	"westbrom":"https://www.premierleague.com/clubs/36/West-Bromwich-Albion/stats",
+	"fulham":"https://www.premierleague.com/clubs/34/Fulham/stats",
+	"burnley":"https://www.premierleague.com/clubs/43/Burnley/stats"
 }
