@@ -167,3 +167,4 @@ pyprem-env/bin/Activate.ps1
 pyprem-env/bin/activate.fish
 pyprem-env/bin/activate.csh
 pyprem-env/bin/activate
+.vscode/settings.json

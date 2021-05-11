@@ -107,8 +107,9 @@ class Search(object):
     def get_team_detailed_info(self):
         team = self.team
         league = self.league
-        info = [[]]
+        info = []
 
+        # using scorespro
         url = self.data[league][team]
         html = self.get_html(url)
         soup = BeautifulSoup(html, 'html.parser')
@@ -116,52 +117,41 @@ class Search(object):
         # find top scorer block
         top_scorer_a = soup.find("div", {'class':'topscorerInfo'})
         top_scorer_name = top_scorer_a.find('div', {'class':'sp-teamtopscorer_name'}).text
-        top_scorer_goals = top_scorer_a.find('div', {'class':'sp-teamtopscorer_totalgoals'}).text   # top goalscorer is found here
+        top_scorer_goals = self.convert_to_int(top_scorer_a.find(
+                                            'div', {'class':'sp-teamtopscorer_totalgoals'}).text)   # top goalscorer is found here
 
         # find unbeaten streak
         unbeaten_streak_str = soup.find("div", {'class':'act_comp_unbeat'}).text
         unbeaten_streak_int = re.sub('\D', '', unbeaten_streak_str)
         #info.append([top_scorer_name, top_scorer_goals, unbeaten_streak_int])
 
+        # now switch to offical prem stats
         url = self.detailed_data[team]
         html = self.get_html(url)
         soup = BeautifulSoup(html, 'html.parser')
 
         stat_block = soup.find('ul', {'class':'normalStatList'})
         #for stat_block in stat_blocks:
-
-        goals_total = stat_block.find('span', {'class':'statgoals'}).text               # find the goals scored stat
-        goals_total = int(''.join(filter(str.isdigit, goals_total)))                    # isolate only the digits
-        # this could probably be trimmed down a bit
-        goals_per_game = stat_block.find('span', {'class':'statgoals_per_game'}).text
-        goals_per_game = int(''.join(filter(str.isdigit, goals_per_game)))
-        shots_total = stat_block.find('span', {'class':'stattotal_scoring_att'}).text
-        shots_total = int(''.join(filter(str.isdigit, shots_total)))
-        shots_ot_total = stat_block.find('span', {'class':'statontarget_scoring_att'}).text
-        shots_ot_total = int(''.join(filter(str.isdigit, shots_ot_total)))
-        shot_accuracy = stat_block.find('span', {'class':'statshot_accuracy'}).text
-        shot_accuracy = int(''.join(filter(str.isdigit, shot_accuracy)))
-        pen_goals = stat_block.find('span', {'class':'statatt_pen_goal'}).text
-        pen_goals = int(''.join(filter(str.isdigit, pen_goals)))
-        chances_created = stat_block.find('span', {'class':'statbig_chance_created'}).text
-        chances_created = int(''.join(filter(str.isdigit, chances_created)))
-        hit_woodwork = stat_block.find('span', {'class':'stathit_woodwork'}).text  
-        hit_woodwork = int(''.join(filter(str.isdigit, hit_woodwork)))
-        total_passes = stat_block.find('span', {'class':'stattotal_pass'}).text 
-        total_passes = int(''.join(filter(str.isdigit, total_passes)))
+        # could maybe loop over these rather than converting them all here
+        goals_total = self.convert_to_int(stat_block.find('span', {'class':'statgoals'}).text)      # find the goals scored stat
+        goals_per_game = self.convert_to_int(stat_block.find('span', {'class':'statgoals_per_game'}).text)
+        goals_per_game = goals_per_game / 100       # bc convert_to_int wont return the '.' in the number
+        shots_total = self.convert_to_int(stat_block.find('span', {'class':'stattotal_scoring_att'}).text)
+        shots_ot_total = self.convert_to_int(stat_block.find('span', {'class':'statontarget_scoring_att'}).text)
+        shot_accuracy = self.convert_to_int(stat_block.find('span', {'class':'statshot_accuracy'}).text)
+        pen_goals = self.convert_to_int(stat_block.find('span', {'class':'statatt_pen_goal'}).text)
+        chances_created = self.convert_to_int(stat_block.find('span', {'class':'statbig_chance_created'}).text)
+        hit_woodwork = self.convert_to_int(stat_block.find('span', {'class':'stathit_woodwork'}).text)
+        total_passes = self.convert_to_int(stat_block.find('span', {'class':'stattotal_pass'}).text)
 
         info.append([top_scorer_name, top_scorer_goals, unbeaten_streak_int, goals_total, goals_per_game, 
                     shots_total, shots_ot_total, shot_accuracy, pen_goals, chances_created, hit_woodwork, 
                     total_passes])
-            
+     
+        return info
 
-
-        df = pd.DataFrame(info, columns=['TopScorer', 'GoalsScored', 'WinStreak', 'TotalGoals', 'Goals/Game',
-                                        'TotalShots', 'ShotsOT', 'ShotAcc', 'PenGoals', 'BigChances', 'HitFrame',
-                                        'TotalPasses'])
-        df = df.iloc[1:]
-        return df
-
+    def convert_to_int(self, string):
+        return int(''.join(filter(str.isdigit, string)))
 
     # another helper func for searching for an entire leagues results
     # prints off the previous rounds based on limit
