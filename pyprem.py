@@ -165,6 +165,7 @@ class Search(object):
         results = soup.find('div', {'id':'national'})
         rounds = results.find_all(True, {'class':['ncet', 'blocks']})
 
+        info = [[]]
         num_rounds = 0
         for line in rounds:
             round_ = line.find('li', {'class':'ncet_round'})
@@ -180,7 +181,11 @@ class Search(object):
                 away_team = game.find('td', {'class':'away'}).text
                 score = game.find('td', {'class':'score'}).text
                 
-                #print(kick_off_date, kick_off_time, home_team, score, away_team)
+                info.append([kick_off_date, kick_off_time, home_team, score, away_team])
+        
+        df = pd.DataFrame(info, columns = ['Date', 'Time', 'Home', 'Score', 'Away'])    # create the df
+        df = df.iloc[1:]                                                                    # dont need the top row
+        return df.iloc[:self.num_results]
     
 
     def get_league_results_fixture(self):
@@ -193,13 +198,15 @@ class Search(object):
             url = self.data[league]['_l_name_r']
             html = self.get_html(url)
             soup = BeautifulSoup(html, 'html.parser')
-            self.get_league_results_fixture_aux(soup)
+            df = self.get_league_results_fixture_aux(soup)
         
         if self.fixture:
             url = self.data[league]['_l_name_f']
             html = self.get_html(url)
             soup = BeautifulSoup(html, 'html.parser')
-            self.get_league_results_fixture_aux(soup)
+            df = self.get_league_results_fixture_aux(soup)
+        
+        return df
     
     def get_league_table(self):
         '''
@@ -253,9 +260,9 @@ class Search(object):
         return df.iloc[:self.num_results]
         
 
-test_search = Search('epl', 'everton', results=True, fixture=False, num_results=10)
+test_search = Search('epl', 'liverpool', results=True, fixture=False, num_results=100)
 
-detailed = test_search.get_team_detailed_info()
+detailed = test_search.get_team_results_fixture()
 
 print(detailed)
 
